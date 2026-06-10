@@ -894,7 +894,7 @@ class App:
         self.root.destroy()
 
 
-def main():
+def _main():
     root = tk.Tk()
     try:
         ttk.Style().theme_use("vista")
@@ -917,6 +917,29 @@ def main():
     root.deiconify()
     App(root, auth=auth)
     root.mainloop()
+
+
+def main():
+    """Bao boc _main: neu crash -> HIEN hop thoai loi + ghi tool_error.txt
+    (tranh tat im khi chay bang pythonw)."""
+    try:
+        _main()
+    except Exception:
+        import traceback
+        tb = traceback.format_exc()
+        try:
+            here = os.path.dirname(os.path.abspath(__file__))
+            with open(os.path.join(here, "tool_error.txt"), "w", encoding="utf-8") as f:
+                f.write(tb)
+        except Exception:
+            pass
+        try:
+            from tkinter import messagebox as _mb
+            _mb.showerror("Tool Voice Clone - Loi khoi dong",
+                          "Tool gap loi khi mo. Gui file tool_error.txt cho admin.\n\n"
+                          + tb[-1500:])
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

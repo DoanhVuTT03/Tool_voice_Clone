@@ -19,6 +19,7 @@ supabase/
 # File ghi nho dang nhap + log loi setup
 login_remember.dat
 setup_error.txt
+tool_error.txt
 
 # Build / installer output
 Output/
