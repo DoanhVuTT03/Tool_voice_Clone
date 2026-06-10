@@ -147,11 +147,8 @@ def _download_with_progress(root, url):
     return result["path"]
 
 
-def maybe_update(root):
-    """Kiem tra + hoi cap nhat. Tra True neu DANG cap nhat (caller nen thoat tool)."""
-    info = check_for_update()
-    if not info:
-        return False
+def prompt_and_download(root, info):
+    """Hoi + tai + chay installer cho 1 'info' da biet. Tra True neu DANG cap nhat."""
     msg = (f"Da co ban moi: phien ban {info['version']}\n"
            f"(ban hien tai: {APP_VERSION})\n\n{info.get('notes', '')}\n\nCap nhat ngay bay gio?")
     if not messagebox.askyesno("Co ban cap nhat", msg):
@@ -166,3 +163,11 @@ def maybe_update(root):
         messagebox.showerror("Loi", f"Khong mo duoc file cai dat:\n{e}")
         return False
     return True
+
+
+def maybe_update(root):
+    """Kiem tra + hoi cap nhat (luc mo tool). Tra True neu DANG cap nhat."""
+    info = check_for_update()
+    if not info:
+        return False
+    return prompt_and_download(root, info)

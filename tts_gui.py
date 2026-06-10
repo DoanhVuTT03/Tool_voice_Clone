@@ -353,6 +353,7 @@ class App:
         self._build_ui()
         if self.auth:
             self._start_heartbeat()
+        self._start_update_watch()           # tu kiem tra ban moi moi 30 phut
         # chuan bi engine theo lua chon mac dinh (o nen)
         threading.Thread(target=self.prepare_default, daemon=True).start()
         root.protocol("WM_DELETE_WINDOW", self.on_close)
@@ -540,6 +541,31 @@ class App:
         except Exception:
             pass
         self.on_close()
+
+    # -------------------- tu kiem tra cap nhat (dinh ky) -------------------- #
+    def _start_update_watch(self):
+        self._update_snooze_until = 0.0
+        threading.Thread(target=self._update_watch_loop, daemon=True).start()
+
+    def _update_watch_loop(self):
+        import updater
+        while True:
+            time.sleep(1800)                 # 30 phut
+            if time.time() < getattr(self, "_update_snooze_until", 0.0):
+                continue
+            try:
+                info = updater.check_for_update()
+            except Exception:
+                info = None
+            if info:
+                self.root.after(0, lambda i=info: self._prompt_update(i))
+
+    def _prompt_update(self, info):
+        import updater
+        # bam "De sau" -> tam an 4 gio (khong hoi lai lien tuc)
+        self._update_snooze_until = time.time() + 4 * 3600
+        if updater.prompt_and_download(self.root, info):
+            self.on_close()
 
     # -------------------- giong mau -------------------- #
     def choose_reference(self):
