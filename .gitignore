@@ -16,8 +16,9 @@ install_log.txt
 # SQL backend (CHUA MAT KHAU ADMIN - KHONG day len repo public)
 supabase/
 
-# File ghi nho dang nhap
+# File ghi nho dang nhap + log loi setup
 login_remember.dat
+setup_error.txt
 
 # Build / installer output
 Output/

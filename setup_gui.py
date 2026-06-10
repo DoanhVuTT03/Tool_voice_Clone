@@ -183,13 +183,23 @@ class SetupGUI:
 
 
 def main():
-    root = tk.Tk()
     try:
-        ttk.Style().theme_use("vista")
+        root = tk.Tk()
+        try:
+            ttk.Style().theme_use("vista")
+        except Exception:
+            pass
+        SetupGUI(root)
+        root.mainloop()
     except Exception:
-        pass
-    SetupGUI(root)
-    root.mainloop()
+        # GUI khong chay duoc -> ghi log de chan doan; cai_dat.bat se tu lui ve CLI.
+        import traceback
+        try:
+            with open(os.path.join(APPDIR, "setup_error.txt"), "w", encoding="utf-8") as f:
+                f.write(traceback.format_exc())
+        except Exception:
+            pass
+        raise
 
 
 if __name__ == "__main__":
