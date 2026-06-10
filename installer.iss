@@ -1,9 +1,9 @@
-; Inno Setup script - Tool Voice Clone (Doanhbadboiz)
+﻿; Inno Setup script - Tool Voice Clone (Doanhbadboiz)
 ; Bien dich: ISCC.exe installer.iss  -> Output\ToolVoiceClone_Setup.exe
 ; Cai vao thu muc nguoi dung (khong can quyen admin); deps tai khi chay lan dau.
 
 #define AppName "Tool Voice Clone (Doanhbadboiz)"
-#define AppVer "1.2.3"
+#define AppVer "1.2.4"
 #define AppPub "Doanhbadboiz - Vu Duc Doanh"
 
 [Setup]

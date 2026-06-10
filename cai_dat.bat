@@ -5,40 +5,41 @@ set "VPY=%~dp0.venv\Scripts\python.exe"
 
 echo ============================================================
 echo   CAI DAT Tool Voice Clone (Doanhbadboiz)
-echo   Can INTERNET. Lan dau tai ~vai GB (chi 1 lan). DUNG TAT cua so.
+echo   Can INTERNET. Lan dau tai vai GB (chi 1 lan). DUNG TAT cua so.
 echo ============================================================
 echo.
 
-REM --- Tim / tu cai Python 3.11 (khong can admin) ---
-set "PYEXE="
-for /f "delims=" %%e in ('py -3.11 -c "import sys;print(sys.executable)" 2^>nul') do set "PYEXE=%%e"
-if not defined PYEXE if exist "%LOCALAPPDATA%\Programs\Python\Python311\python.exe" set "PYEXE=%LOCALAPPDATA%\Programs\Python\Python311\python.exe"
-if not defined PYEXE (
+REM --- Tim Python 3.11 (KHONG dung for/f de tranh loi cu phap) ---
+set "PYCMD="
+py -3.11 -V >nul 2>nul && set "PYCMD=py -3.11"
+if not defined PYCMD if exist "%LOCALAPPDATA%\Programs\Python\Python311\python.exe" set PYCMD="%LOCALAPPDATA%\Programs\Python\Python311\python.exe"
+
+if not defined PYCMD (
     echo Khong thay Python 3.11 - dang TAI bo cai chinh thuc tu python.org ...
     curl -L -o "%TEMP%\py311_setup.exe" https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe
-    if not exist "%TEMP%\py311_setup.exe" powershell -NoProfile -Command "Invoke-WebRequest -Uri 'https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe' -OutFile $env:TEMP'\py311_setup.exe'"
-    echo Dang cai Python 3.11 (im lang, KHONG can admin)...
+    echo Dang cai Python 3.11 (im lang, khong can admin) ...
     "%TEMP%\py311_setup.exe" /quiet InstallAllUsers=0 PrependPath=1 Include_pip=1 Include_launcher=1 Include_test=0 Shortcuts=0
-    set "PYEXE=%LOCALAPPDATA%\Programs\Python\Python311\python.exe"
+    if exist "%LOCALAPPDATA%\Programs\Python\Python311\python.exe" set PYCMD="%LOCALAPPDATA%\Programs\Python\Python311\python.exe"
 )
-if not exist "%PYEXE%" goto :nopy
-echo Python OK: %PYEXE%
+
+if not defined PYCMD goto :nopy
+echo Python OK.
 echo.
 
 REM --- Thu cua so cai dat dep (neu chay duoc) ---
-echo Mo cua so cai dat (neu khong hien, se cai bang dong lenh)...
-"%PYEXE%" "%~dp0setup_gui.py" "%PYEXE%" 2>nul
+echo Mo cua so cai dat (neu khong hien se cai bang dong lenh) ...
+%PYCMD% "%~dp0setup_gui.py"
 
-REM --- Da cai DU chua? (thu import torch + omnivoice) ---
+REM --- Da cai DU chua? ---
 call :check
 if defined DONE goto :ok
 
 echo.
 echo ============================================================
-echo   CAI BANG DONG LENH (hien ro tien trinh - vui long doi)
+echo   CAI BANG DONG LENH (hien ro tien trinh - vui long doi, tai vai GB)
 echo ============================================================
 echo [1/5] Tao moi truong ao .venv ...
-"%PYEXE%" -m venv .venv
+%PYCMD% -m venv .venv
 echo [2/5] Nang cap pip ...
 "%VPY%" -m pip install --upgrade pip
 echo [3/5] Cai PyTorch (GPU CUDA 12.8, tu lui CPU) - tai ~2-3GB ...
@@ -52,7 +53,7 @@ echo [5/5] Tai san model OmniVoice (VN + Base) - ~vai GB ...
 call :check
 echo.
 if not defined DONE (
-    echo [LOI] Cai dat CHUA xong. Xem dong loi mau o tren.
+    echo [LOI] Cai dat CHUA xong - xem dong loi mau o tren.
     echo       Thuong do rot mang -> cu CHAY LAI file nay (no tai tiep).
     echo.
     pause
@@ -68,14 +69,15 @@ exit /b 0
 
 :check
 set "DONE="
-if exist "%VPY%" ( "%VPY%" -c "import torch, omnivoice" >nul 2>nul && set "DONE=1" )
+if not exist "%VPY%" goto :eof
+"%VPY%" -c "import torch, omnivoice" >nul 2>nul && set "DONE=1"
 goto :eof
 
 :nopy
 echo.
 echo [LOI] Khong tu cai duoc Python 3.11.
 echo       Tai tay: https://www.python.org/downloads/release/python-3119/
-echo       (tich "Add Python to PATH"), roi chay lai file nay.
+echo       (tich "Add Python to PATH") roi chay lai file nay.
 echo.
 pause
 exit /b 1
