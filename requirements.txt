@@ -1,0 +1,8 @@
+# Engine + GUI cho Tool Voice OmniVoice tieng Viet 1000h
+# LUU Y: torch/torchaudio cai RIENG (xem cai_dat.bat) vi can ban CUDA dung.
+omnivoice
+soundfile
+librosa
+numpy
+ormsgpack
+

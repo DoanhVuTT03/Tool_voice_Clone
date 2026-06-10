@@ -1,0 +1,26 @@
+# Moi truong ao + cache
+.venv/
+__pycache__/
+*.pyc
+
+# Output / file tam / log
+output_tts/
+*_tts/
+*.wav
+*.part
+install_log.txt
+
+# Du lieu test (khong day len repo)
+*.srt
+
+# Build / installer output
+Output/
+build/
+dist/
+*.zip
+
+# Model tai ve (neu co)
+models/
+*.safetensors
+*.pth
+*.ckpt

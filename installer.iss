@@ -1,0 +1,50 @@
+; Inno Setup script - Tool Voice Clone (Doanhbadboiz)
+; Bien dich: ISCC.exe installer.iss  -> Output\ToolVoiceClone_Setup.exe
+; Cai vao thu muc nguoi dung (khong can quyen admin); deps tai khi chay lan dau.
+
+#define AppName "Tool Voice Clone (Doanhbadboiz)"
+#define AppVer "1.0.0"
+#define AppPub "Doanhbadboiz - Vu Duc Doanh"
+
+[Setup]
+AppId={{8F3A1C42-7D9E-4B6A-9C21-A1B2C3D4E5F6}
+AppName={#AppName}
+AppVersion={#AppVer}
+AppPublisher={#AppPub}
+DefaultDirName={localappdata}\Programs\ToolVoiceClone
+DefaultGroupName=Tool Voice Clone
+DisableProgramGroupPage=yes
+PrivilegesRequired=lowest
+OutputDir=Output
+OutputBaseFilename=ToolVoiceClone_Setup
+SetupIconFile=app.ico
+UninstallDisplayIcon={app}\app.ico
+Compression=lzma2
+SolidCompression=yes
+WizardStyle=modern
+ArchitecturesInstallIn64BitMode=x64compatible
+
+[Languages]
+Name: "en"; MessagesFile: "compiler:Default.isl"
+
+[Tasks]
+Name: "desktopicon"; Description: "Tao bieu tuong ngoai Desktop"; GroupDescription: "Tuy chon:"
+
+[Files]
+Source: "*.py";              DestDir: "{app}"; Flags: ignoreversion
+Source: "*.bat";             DestDir: "{app}"; Flags: ignoreversion
+Source: "start_app.vbs";     DestDir: "{app}"; Flags: ignoreversion
+Source: "requirements.txt";  DestDir: "{app}"; Flags: ignoreversion
+Source: "app.ico";           DestDir: "{app}"; Flags: ignoreversion
+Source: "logo.png";          DestDir: "{app}"; Flags: ignoreversion
+Source: "*.md";              DestDir: "{app}"; Flags: ignoreversion
+Source: "wsl\*";             DestDir: "{app}\wsl"; Flags: ignoreversion recursesubdirs
+
+[Icons]
+Name: "{group}\Tool Voice Clone"; Filename: "{app}\start_app.vbs"; IconFilename: "{app}\app.ico"; WorkingDir: "{app}"
+Name: "{group}\Huong dan";        Filename: "{app}\HUONG_DAN.md";   IconFilename: "{app}\app.ico"; WorkingDir: "{app}"
+Name: "{group}\Go cai dat Tool Voice Clone"; Filename: "{uninstallexe}"
+Name: "{autodesktop}\Tool Voice Clone"; Filename: "{app}\start_app.vbs"; IconFilename: "{app}\app.ico"; WorkingDir: "{app}"; Tasks: desktopicon
+
+[Run]
+Filename: "{app}\start_app.vbs"; Description: "Mo Tool Voice Clone ngay"; Flags: postinstall nowait skipifsilent shellexec
