@@ -692,8 +692,8 @@ class App:
                 self.wsl = WslServer(port=WSL_PORT, model_id=mid, log=self.log)
             ok = self.wsl.start(stop_check=stop_check)
             if not ok:
-                self.log("    -> WSL chua san sang. Hay chay 'cai_dat_wsl.bat' (trong thu muc app)")
-                self.log("       de cai dat WSL + moi truong OmniVoice (lam 1 lan), roi thu lai.")
+                self.log("    -> WSL chua san sang. Se hoi cai dat WSL...")
+                self.root.after(0, self._prompt_install_wsl)
             return ok
         if mode == "fish":
             if self.fish is None:
@@ -706,6 +706,26 @@ class App:
             self.log(f"[LOI] Khong nap duoc model in-process: {e}")
             self.log("    -> Kiem tra da cai 'omnivoice' + torch (xem HUONG_DAN.md).")
             return False
+
+    def _prompt_install_wsl(self):
+        """WSL chua san sang -> hoi user cai WSL ngay (chay cai_dat_wsl.bat)."""
+        import subprocess
+        msg = ("Engine WSL chua san sang tren may nay.\n\n"
+               "Cai dat WSL ngay de chay nhanh?\n"
+               "- Se hien cua so xin quyen ADMIN (UAC) -> bam YES.\n"
+               "- Co the phai KHOI DONG LAI may.\n"
+               "- Tai khoang 15GB (chi 1 lan).\n\n"
+               "Sau khi cai xong (va reboot neu can), mo lai tool va bam Start.")
+        if not messagebox.askyesno("Cai dat WSL (tang toc)", msg):
+            self.log("Da huy cai WSL. Co the chon 'OmniVoice VN (Windows in-process)' de chay tam.")
+            return
+        try:
+            here = os.path.dirname(os.path.abspath(__file__))
+            bat = os.path.join(here, "cai_dat_wsl.bat")
+            subprocess.Popen(["cmd", "/c", "start", "", bat], cwd=here)
+            self.log("Dang chay cai_dat_wsl.bat ... lam theo huong dan trong cua so do.")
+        except Exception as e:
+            messagebox.showerror("Loi", f"Khong mo duoc cai_dat_wsl.bat:\n{e}")
 
     # -------------------- dieu khien chay -------------------- #
     def _set_running_ui(self, running):
