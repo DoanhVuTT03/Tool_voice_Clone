@@ -173,12 +173,7 @@ class SetupGUI:
                                             f"dong cua so va chay lai cai_dat.bat (no tai tiep).")
 
     def _open_tool(self):
-        try:
-            pw = os.path.join(APPDIR, ".venv", "Scripts", "pythonw.exe")
-            subprocess.Popen([pw, os.path.join(APPDIR, "tts_gui.py")], cwd=APPDIR,
-                             creationflags=NOWIN)
-        except Exception as e:
-            messagebox.showerror("Loi", str(e))
+        # Chi dong cua so; cai_dat.bat se mo Tool sau (tranh mo 2 lan).
         self.root.destroy()
 
 
