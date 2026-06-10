@@ -480,22 +480,42 @@ class App:
 
     # -------------------- dang nhap / han dung -------------------- #
     def _build_auth_banner(self):
-        bar = ttk.Frame(self.root)
-        bar.pack(fill="x", padx=10, pady=(6, 0))
-        self.lbl_acc = ttk.Label(bar, text="", font=("", 9, "bold"))
+        BG = "#111827"          # slate dam (header)
+        bar = tk.Frame(self.root, bg=BG)
+        bar.pack(fill="x")
+        inner = tk.Frame(bar, bg=BG)
+        inner.pack(fill="x", padx=14, pady=7)
+        # trai: tai khoan
+        self.lbl_acc = tk.Label(inner, text="", bg=BG, fg="#e5e7eb",
+                                font=("Segoe UI", 10, "bold"))
         self.lbl_acc.pack(side="left")
-        self.lbl_exp = ttk.Label(bar, text="", foreground="#0a0")
+        # phai: dem nguoc thoi gian (icon dong ho + so giay nhay)
+        self.lbl_exp = tk.Label(inner, text="", bg=BG, fg="#34d399",
+                                font=("Segoe UI Semibold", 10))
         self.lbl_exp.pack(side="right")
         self._refresh_expiry()
 
     def _refresh_expiry(self):
-        if not self.auth:
+        if not self.auth or not hasattr(self, "lbl_exp"):
             return
-        han, con = _fmt_remaining(self.auth.get("expires_at"))
-        self.lbl_acc.config(text=f"Tai khoan: {self.auth.get('username', '')}")
-        self.lbl_exp.config(text=f"Het han: {han}   ({con})",
-                            foreground="#c00" if con.startswith("DA") else "#0a7a0a")
-        self.root.after(60000, self._refresh_expiry)
+        self.lbl_acc.config(text=f"\U0001F464  {self.auth.get('username', '')}")
+        exp = _parse_ts(self.auth.get("expires_at"))
+        if not exp:
+            self.lbl_exp.config(text="")
+        else:
+            secs = int((exp - _dt.datetime.now(_dt.timezone.utc)).total_seconds())
+            if secs <= 0:
+                self.lbl_exp.config(text="⛔  Tai khoan da het han", fg="#f87171")
+            else:
+                d, r = divmod(secs, 86400)
+                h, r = divmod(r, 3600)
+                m, s = divmod(r, 60)
+                han = exp.astimezone().strftime("%d/%m/%Y %H:%M")
+                col = "#34d399" if d >= 7 else ("#fbbf24" if d >= 1 else "#f87171")
+                self.lbl_exp.config(
+                    text=f"⏳  Con {d} ngay  {h:02d}:{m:02d}:{s:02d}     •  Het han {han}",
+                    fg=col)
+        self.root.after(1000, self._refresh_expiry)     # nhay moi giay (real-time)
 
     def _start_heartbeat(self):
         threading.Thread(target=self._heartbeat_loop, daemon=True).start()
