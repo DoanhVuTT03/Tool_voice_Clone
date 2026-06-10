@@ -42,8 +42,8 @@ BASE_MODEL = "k2-fsa/OmniVoice"                   # ban GOC da ngon ngu (646 thu
 #  - OmniVoice Base (WSL, da ngon ngu): TBN/Phap/Anh/Filipino, native speed.
 #  - Fish Speech: da ngon ngu - dung server cua D:\Tool_voice.
 MODELS = [
-    "OmniVoice VN (WSL nhanh)",
-    "OmniVoice VN (Windows in-process)",
+    "OmniVoice VN (Windows in-process)",   # mac dinh: chay ngay, KHONG can WSL
+    "OmniVoice VN (WSL nhanh)",             # nhanh hon nhung phai cai WSL (cai_dat_wsl.bat)
     "OmniVoice Base (WSL, da ngon ngu)",
     "Fish Speech (da ngon ngu)",
 ]
@@ -690,7 +690,12 @@ class App:
                 if self.wsl is not None:
                     self.wsl.stop()
                 self.wsl = WslServer(port=WSL_PORT, model_id=mid, log=self.log)
-            return self.wsl.start(stop_check=stop_check)
+            ok = self.wsl.start(stop_check=stop_check)
+            if not ok:
+                self.log("    -> WSL chua san sang. Hay chon 'OmniVoice VN (Windows in-process)' "
+                         "o 'Mo Hinh AI' de chay NGAY (khong can WSL),")
+                self.log("       hoac chay cai_dat_wsl.bat de bat WSL (nhanh hon).")
+            return ok
         if mode == "fish":
             if self.fish is None:
                 self.fish = FishServer(log=self.log)
