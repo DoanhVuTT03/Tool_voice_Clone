@@ -1,12 +1,17 @@
 @echo off
 chcp 65001 >nul
 cd /d "%~dp0"
-if not exist ".venv\Scripts\python.exe" (
-    echo [LOI] Chua cai dat moi truong. Chay cai_dat.bat truoc.
-    pause
-    exit /b 1
-)
-".venv\Scripts\python.exe" admin_tool.py
-echo.
-echo (Admin tool da dong.)
-pause
+
+REM Mo Admin tool bang pythonw (khong hien cmd). Uu tien venv, roi Python he thong.
+if exist ".venv\Scripts\pythonw.exe" goto :venv
+if exist "%LOCALAPPDATA%\Programs\Python\Python311\pythonw.exe" goto :sys
+pyw -3.11 "%~dp0admin_tool.py"
+goto :eof
+
+:venv
+start "" ".venv\Scripts\pythonw.exe" "%~dp0admin_tool.py"
+goto :eof
+
+:sys
+start "" "%LOCALAPPDATA%\Programs\Python\Python311\pythonw.exe" "%~dp0admin_tool.py"
+goto :eof
