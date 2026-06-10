@@ -35,7 +35,7 @@ pip install $PIP_OPTS numpy
 pip install $PIP_OPTS scikit-learn
 pip install $PIP_OPTS soundfile librosa
 pip install $PIP_OPTS fastapi "uvicorn[standard]"
-pip install $PIP_OPTS huggingface_hub
+pip install $PIP_OPTS huggingface_hub hf_transfer
 pip install $PIP_OPTS omnivoice
 
 echo ""
@@ -44,11 +44,17 @@ python3 -c "import torch; print('  CUDA available:', torch.cuda.is_available(), 
 
 echo "[5/5] Tai san model OmniVoice (VN + Base) trong WSL - ~vai GB, chi 1 lan..."
 python3 - <<'PYEOF' || true
+import os
+try:
+    import hf_transfer  # tai nhanh
+    os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "1"
+except Exception:
+    pass
 from huggingface_hub import snapshot_download
 for m in ["splendor1811/omnivoice-vietnamese", "k2-fsa/OmniVoice"]:
     print("  tai", m, flush=True)
     try:
-        snapshot_download(repo_id=m)
+        snapshot_download(repo_id=m, max_workers=8)
         print("   OK", m)
     except Exception as e:
         print("   skip (se tai khi tao voice):", e)

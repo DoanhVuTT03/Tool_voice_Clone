@@ -16,6 +16,14 @@ import os
 import threading
 import numpy as np
 
+# Tai model nhanh + on dinh hon qua hf_transfer (neu da cai)
+os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
+try:
+    import hf_transfer  # noqa: F401
+    os.environ.setdefault("HF_HUB_ENABLE_HF_TRANSFER", "1")
+except Exception:
+    pass
+
 # --------------------------------------------------------------------------- #
 # Cau hinh
 # --------------------------------------------------------------------------- #
