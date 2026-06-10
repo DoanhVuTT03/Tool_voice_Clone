@@ -35,6 +35,7 @@ Name: "desktopicon"; Description: "Tao bieu tuong ngoai Desktop"; GroupDescripti
 Source: "*.py";              DestDir: "{app}"; Flags: ignoreversion
 Source: "*.bat";             DestDir: "{app}"; Flags: ignoreversion
 Source: "start_app.vbs";     DestDir: "{app}"; Flags: ignoreversion
+Source: "auth_config.json";  DestDir: "{app}"; Flags: ignoreversion
 Source: "requirements.txt";  DestDir: "{app}"; Flags: ignoreversion
 Source: "app.ico";           DestDir: "{app}"; Flags: ignoreversion
 Source: "logo.png";          DestDir: "{app}"; Flags: ignoreversion

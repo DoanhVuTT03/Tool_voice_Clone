@@ -18,6 +18,7 @@ import os
 import re
 import time
 import threading
+import datetime as _dt
 from pathlib import Path
 from queue import Queue
 from concurrent.futures import ThreadPoolExecutor
@@ -237,10 +238,94 @@ def apply_fx(audio, sr, speed, pitch):
 
 
 # --------------------------------------------------------------------------- #
+# Dang nhap (Supabase) + hien han dung
+# --------------------------------------------------------------------------- #
+def _parse_ts(s):
+    try:
+        return _dt.datetime.fromisoformat((s or "").strip().replace("Z", "+00:00"))
+    except Exception:
+        return None
+
+
+def _fmt_remaining(expires_at):
+    """Tra ve (han_text, conlai_text)."""
+    exp = _parse_ts(expires_at)
+    if not exp:
+        return "?", ""
+    now = _dt.datetime.now(_dt.timezone.utc)
+    han = exp.astimezone().strftime("%d/%m/%Y %H:%M")
+    delta = exp - now
+    if delta.total_seconds() <= 0:
+        return han, "DA HET HAN"
+    return han, f"con {delta.days} ngay {int(delta.seconds // 3600)} gio"
+
+
+def login_gate(root):
+    """Man dang nhap modal. Tra dict {username,token,expires_at} hoac None."""
+    import voice_auth
+    result = {}
+    win = tk.Toplevel(root)
+    win.title("Dang nhap - Tool Voice Clone")
+    win.geometry("390x250")
+    win.resizable(False, False)
+    win.grab_set()
+    try:
+        win.iconbitmap(os.path.join(os.path.dirname(os.path.abspath(__file__)), "app.ico"))
+    except Exception:
+        pass
+
+    ttk.Label(win, text="TOOL VOICE CLONE", font=("", 14, "bold")).pack(pady=(16, 0))
+    ttk.Label(win, text="Doanhbadboiz - dang nhap de su dung", foreground="#666").pack()
+
+    frm = ttk.Frame(win); frm.pack(pady=10, padx=22, fill="x")
+    ttk.Label(frm, text="Tai khoan:").grid(row=0, column=0, sticky="e", pady=5, padx=4)
+    e_user = ttk.Entry(frm, width=26); e_user.grid(row=0, column=1, pady=5)
+    ttk.Label(frm, text="Mat khau:").grid(row=1, column=0, sticky="e", pady=5, padx=4)
+    e_pass = ttk.Entry(frm, width=26, show="*"); e_pass.grid(row=1, column=1, pady=5)
+    var_rem = tk.BooleanVar(value=True)
+    ttk.Checkbutton(frm, text="Ghi nho dang nhap", variable=var_rem).grid(row=2, column=1, sticky="w")
+
+    lbl_msg = ttk.Label(win, text="", foreground="#c00", wraplength=350); lbl_msg.pack()
+
+    rem = voice_auth.load_remember()
+    if rem:
+        e_user.insert(0, rem[0]); e_pass.insert(0, rem[1])
+
+    def do_login():
+        u = e_user.get().strip(); p = e_pass.get()
+        if not u or not p:
+            lbl_msg.config(text="Nhap tai khoan va mat khau."); return
+        btn.config(state="disabled"); lbl_msg.config(text="Dang dang nhap...")
+        win.update_idletasks()
+        try:
+            r = voice_auth.login(u, p)
+        except voice_auth.AuthConfigError as e:
+            lbl_msg.config(text=f"Loi cau hinh: {e}"); btn.config(state="normal"); return
+        except voice_auth.AuthNetworkError as e:
+            lbl_msg.config(text=f"Loi mang: {e}"); btn.config(state="normal"); return
+        if not r.get("ok"):
+            lbl_msg.config(text=r.get("reason", "Dang nhap that bai")); btn.config(state="normal"); return
+        if var_rem.get():
+            voice_auth.save_remember(u, p)
+        else:
+            voice_auth.clear_remember()
+        result.update({"username": r.get("username", u), "token": r.get("token"),
+                       "expires_at": r.get("expires_at")})
+        win.destroy()
+
+    btn = ttk.Button(win, text="Dang nhap", command=do_login); btn.pack(pady=10)
+    e_pass.bind("<Return>", lambda e: do_login())
+    win.protocol("WM_DELETE_WINDOW", win.destroy)
+    root.wait_window(win)
+    return result or None
+
+
+# --------------------------------------------------------------------------- #
 # GUI
 # --------------------------------------------------------------------------- #
 class App:
-    def __init__(self, root):
+    def __init__(self, root, auth=None):
+        self.auth = auth
         self.root = root
         root.title("Tool Voice - OmniVoice Tieng Viet 1000h (Local)")
         root.geometry("1180x800")
@@ -266,12 +351,16 @@ class App:
         self.done_count = 0
 
         self._build_ui()
+        if self.auth:
+            self._start_heartbeat()
         # chuan bi engine theo lua chon mac dinh (o nen)
         threading.Thread(target=self.prepare_default, daemon=True).start()
         root.protocol("WM_DELETE_WINDOW", self.on_close)
 
     # -------------------- dung UI -------------------- #
     def _build_ui(self):
+        if self.auth:
+            self._build_auth_banner()
         top = ttk.Frame(self.root)
         top.pack(fill="x", padx=8, pady=6)
 
@@ -388,6 +477,49 @@ class App:
         txt = (f"Subtitles (Done: {self.done_count}  Threads: {self.var_threads.get()}  "
                f"Total: {total})   Elapsed: {el}s")
         self.root.after(0, lambda: self.lbl_status.config(text=txt))
+
+    # -------------------- dang nhap / han dung -------------------- #
+    def _build_auth_banner(self):
+        bar = ttk.Frame(self.root)
+        bar.pack(fill="x", padx=10, pady=(6, 0))
+        self.lbl_acc = ttk.Label(bar, text="", font=("", 9, "bold"))
+        self.lbl_acc.pack(side="left")
+        self.lbl_exp = ttk.Label(bar, text="", foreground="#0a0")
+        self.lbl_exp.pack(side="right")
+        self._refresh_expiry()
+
+    def _refresh_expiry(self):
+        if not self.auth:
+            return
+        han, con = _fmt_remaining(self.auth.get("expires_at"))
+        self.lbl_acc.config(text=f"Tai khoan: {self.auth.get('username', '')}")
+        self.lbl_exp.config(text=f"Het han: {han}   ({con})",
+                            foreground="#c00" if con.startswith("DA") else "#0a7a0a")
+        self.root.after(60000, self._refresh_expiry)
+
+    def _start_heartbeat(self):
+        threading.Thread(target=self._heartbeat_loop, daemon=True).start()
+
+    def _heartbeat_loop(self):
+        import voice_auth
+        while True:
+            time.sleep(60)
+            try:
+                r = voice_auth.validate(self.auth.get("username"), self.auth.get("token"))
+            except Exception:
+                continue  # loi mang tam thoi -> bo qua, khong da nguoi dung
+            if not r.get("ok"):
+                self.root.after(0, lambda rr=r: self._kick(rr.get("reason", "Phien het hieu luc")))
+                return
+            if r.get("expires_at"):
+                self.auth["expires_at"] = r["expires_at"]
+
+    def _kick(self, reason):
+        try:
+            messagebox.showwarning("Phien dang nhap", f"{reason}\n\nTool se dong.")
+        except Exception:
+            pass
+        self.on_close()
 
     # -------------------- giong mau -------------------- #
     def choose_reference(self):
@@ -722,7 +854,13 @@ def main():
         ttk.Style().theme_use("vista")
     except Exception:
         pass
-    App(root)
+    root.withdraw()                      # an cua so chinh khi dang nhap
+    auth = login_gate(root)
+    if not auth:                          # thoat man dang nhap -> khong vao tool
+        root.destroy()
+        return
+    root.deiconify()
+    App(root, auth=auth)
     root.mainloop()
 
 

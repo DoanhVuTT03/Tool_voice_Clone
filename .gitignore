@@ -13,6 +13,12 @@ install_log.txt
 # Du lieu test (khong day len repo)
 *.srt
 
+# SQL backend (CHUA MAT KHAU ADMIN - KHONG day len repo public)
+supabase/
+
+# File ghi nho dang nhap
+login_remember.dat
+
 # Build / installer output
 Output/
 build/

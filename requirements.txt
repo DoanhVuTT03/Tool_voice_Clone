@@ -6,4 +6,5 @@ librosa
 numpy
 ormsgpack
 huggingface_hub
+certifi
 
