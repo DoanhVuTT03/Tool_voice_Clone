@@ -1,6 +1,7 @@
 ' Launcher Tool Voice Clone (Doanhbadboiz)
-' - Lan dau (chua co .venv): chay cai_dat.bat (hien cua so de tai thu vien).
-' - Cac lan sau: chay GUI bang pythonw -> KHONG hien cua so console.
+' - Da cai (co .venv): chay GUI bang pythonw -> KHONG hien cua so console.
+' - Chua cai: mo cua so cai dat (cai_dat.bat -> setup_gui.py co thanh tien trinh).
+'   setup_gui se mo Tool khi cai xong -> KHONG tu mo o day (tranh mo 2 lan).
 Option Explicit
 Dim fso, sh, appdir, vpy
 Set fso = CreateObject("Scripting.FileSystemObject")
@@ -9,13 +10,10 @@ appdir = fso.GetParentFolderName(WScript.ScriptFullName)
 sh.CurrentDirectory = appdir
 vpy = appdir & "\.venv\Scripts\pythonw.exe"
 
-If Not fso.FileExists(vpy) Then
-    ' chua cai -> chay cai dat (cho hoan tat)
-    sh.Run """" & appdir & "\cai_dat.bat""", 1, True
-End If
-
 If fso.FileExists(vpy) Then
+    ' Da cai dat xong -> mo Tool ngay (khong console)
     sh.Run """" & vpy & """ """ & appdir & "\tts_gui.py""", 0, False
 Else
-    MsgBox "Cai dat chua hoan tat. Hay chay cai_dat.bat roi mo lai.", 48, "Tool Voice Clone"
+    ' Chua cai -> mo cua so cai dat (setup_gui se co nut "Mo Tool")
+    sh.Run """" & appdir & "\cai_dat.bat""", 1, True
 End If
