@@ -875,6 +875,15 @@ def main():
     except Exception:
         pass
     root.withdraw()                      # an cua so chinh khi dang nhap
+    # Tu dong cap nhat (khong chan tool neu loi mang)
+    try:
+        import updater
+        updater.cleanup_temp_installer()
+        if updater.maybe_update(root):
+            root.destroy()
+            return
+    except Exception:
+        pass
     auth = login_gate(root)
     if not auth:                          # thoat man dang nhap -> khong vao tool
         root.destroy()
