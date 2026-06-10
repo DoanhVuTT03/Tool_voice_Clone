@@ -32,8 +32,9 @@ Name: "en"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "Tao bieu tuong ngoai Desktop"; GroupDescription: "Tuy chon:"
 
 [Files]
-Source: "*.py";              DestDir: "{app}"; Flags: ignoreversion
-Source: "*.bat";             DestDir: "{app}"; Flags: ignoreversion
+; KHONG dong goi admin tool cho user (chi owner moi co)
+Source: "*.py";              DestDir: "{app}"; Excludes: "admin_tool.py,voice_admin_client.py"; Flags: ignoreversion
+Source: "*.bat";             DestDir: "{app}"; Excludes: "Chay_Admin.bat"; Flags: ignoreversion
 Source: "start_app.vbs";     DestDir: "{app}"; Flags: ignoreversion
 Source: "auth_config.json";  DestDir: "{app}"; Flags: ignoreversion
 Source: "requirements.txt";  DestDir: "{app}"; Flags: ignoreversion
