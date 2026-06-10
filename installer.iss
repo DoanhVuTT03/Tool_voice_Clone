@@ -3,7 +3,7 @@
 ; Cai vao thu muc nguoi dung (khong can quyen admin); deps tai khi chay lan dau.
 
 #define AppName "Tool Voice Clone (Doanhbadboiz)"
-#define AppVer "1.0.0"
+#define AppVer "1.1.0"
 #define AppPub "Doanhbadboiz - Vu Duc Doanh"
 
 [Setup]
@@ -17,6 +17,7 @@ DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 OutputDir=Output
 OutputBaseFilename=ToolVoiceClone_Setup
+InfoBeforeFile=THONG_BAO_TRUOC_KHI_CAI.txt
 SetupIconFile=app.ico
 UninstallDisplayIcon={app}\app.ico
 Compression=lzma2
@@ -37,6 +38,7 @@ Source: "start_app.vbs";     DestDir: "{app}"; Flags: ignoreversion
 Source: "requirements.txt";  DestDir: "{app}"; Flags: ignoreversion
 Source: "app.ico";           DestDir: "{app}"; Flags: ignoreversion
 Source: "logo.png";          DestDir: "{app}"; Flags: ignoreversion
+Source: "THONG_BAO_TRUOC_KHI_CAI.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "*.md";              DestDir: "{app}"; Flags: ignoreversion
 Source: "wsl\*";             DestDir: "{app}\wsl"; Flags: ignoreversion recursesubdirs
 

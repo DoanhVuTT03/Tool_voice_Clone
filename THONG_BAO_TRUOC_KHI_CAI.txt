@@ -1,0 +1,23 @@
+TOOL VOICE CLONE (Doanhbadboiz) - DOC TRUOC KHI CAI
+
+1) SmartScreen: neu Windows hien "Windows protected your PC" ->
+   bam "More info" -> "Run anyway" (file chua ky so).
+
+2) Lan dau mo app se TU DONG CAI: Python 3.11 (neu may chua co) +
+   thu vien + TAI SAN MODEL (~vai GB). Can INTERNET. Chi 1 lan.
+
+3) Muon chay NHANH (khuyen dung) can WSL2:
+   - Chay file  cai_dat_wsl.bat  trong thu muc cai dat.
+   - Neu may chua co WSL, no se xin quyen ADMIN (cua so UAC) ->
+     bam YES, cai xong KHOI DONG LAI may roi chay lai file do.
+
+4) Neu Windows Security / Defender CHAN hoac qua cham, them ngoai le
+   (Exclusion) cho cac thu muc:
+     - Thu muc cai app: %LOCALAPPDATA%\Programs\ToolVoiceClone
+     - Python:          %LOCALAPPDATA%\Programs\Python
+   Cach: Windows Security -> Virus and threat protection ->
+   Manage settings -> Exclusions -> Add -> Folder.
+
+5) Can GPU NVIDIA de nhanh; khong co GPU van chay CPU (cham hon).
+
+Xem chi tiet trong file HUONG_DAN_MAY_KHAC.md
