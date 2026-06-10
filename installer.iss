@@ -3,7 +3,7 @@
 ; Cai vao thu muc nguoi dung (khong can quyen admin); deps tai khi chay lan dau.
 
 #define AppName "Tool Voice Clone (Doanhbadboiz)"
-#define AppVer "1.3.0"
+#define AppVer "1.3.1"
 #define AppPub "Doanhbadboiz - Vu Duc Doanh"
 
 [Setup]
@@ -45,10 +45,10 @@ Source: "*.md";              DestDir: "{app}"; Flags: ignoreversion
 Source: "wsl\*";             DestDir: "{app}\wsl"; Flags: ignoreversion recursesubdirs
 
 [Icons]
-Name: "{group}\Tool Voice Clone"; Filename: "{app}\start_app.bat"; IconFilename: "{app}\app.ico"; WorkingDir: "{app}"
+Name: "{group}\Tool Voice Clone"; Filename: "{app}\.venv\Scripts\pythonw.exe"; Parameters: """{app}\tts_gui.py"""; IconFilename: "{app}\app.ico"; WorkingDir: "{app}"
 Name: "{group}\Huong dan";        Filename: "{app}\HUONG_DAN.md";   IconFilename: "{app}\app.ico"; WorkingDir: "{app}"
 Name: "{group}\Go cai dat Tool Voice Clone"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\Tool Voice Clone"; Filename: "{app}\start_app.bat"; IconFilename: "{app}\app.ico"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{autodesktop}\Tool Voice Clone"; Filename: "{app}\.venv\Scripts\pythonw.exe"; Parameters: """{app}\tts_gui.py"""; IconFilename: "{app}\app.ico"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\start_app.bat"; Description: "Mo Tool Voice Clone ngay"; Flags: postinstall nowait skipifsilent shellexec

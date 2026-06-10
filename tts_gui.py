@@ -32,6 +32,11 @@ import tts_engine as engine
 from wsl_backend import WslServer
 from fish_backend import FishServer
 
+try:
+    from version import APP_VERSION
+except Exception:
+    APP_VERSION = "?"
+
 WSL_PORT = 8090
 VN_MODEL = "splendor1811/omnivoice-vietnamese"   # fine-tune tieng Viet 1000h
 BASE_MODEL = "k2-fsa/OmniVoice"                   # ban GOC da ngon ngu (646 thu tieng)
@@ -499,7 +504,7 @@ class App:
     def _refresh_expiry(self):
         if not self.auth or not hasattr(self, "lbl_exp"):
             return
-        self.lbl_acc.config(text=f"\U0001F464  {self.auth.get('username', '')}")
+        self.lbl_acc.config(text=f"\U0001F464  {self.auth.get('username', '')}    •  v{APP_VERSION}")
         exp = _parse_ts(self.auth.get("expires_at"))
         if not exp:
             self.lbl_exp.config(text="")
