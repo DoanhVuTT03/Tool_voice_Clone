@@ -18,6 +18,7 @@ import os
 import re
 import time
 import threading
+import subprocess
 import datetime as _dt
 from pathlib import Path
 from queue import Queue
@@ -40,6 +41,24 @@ except Exception:
 WSL_PORT = 8090
 VN_MODEL = "splendor1811/omnivoice-vietnamese"   # fine-tune tieng Viet 1000h
 BASE_MODEL = "k2-fsa/OmniVoice"                   # ban GOC da ngon ngu (646 thu tieng)
+
+_CREATE_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
+
+
+def gpu_temp():
+    """Doc nhiet GPU (do C) qua nvidia-smi tren Windows host.
+    Tra ve int, hoac None neu khong co GPU NVIDIA / khong doc duoc."""
+    try:
+        out = subprocess.run(
+            ["nvidia-smi", "--query-gpu=temperature.gpu",
+             "--format=csv,noheader,nounits"],
+            capture_output=True, text=True, timeout=5,
+            creationflags=_CREATE_NO_WINDOW)
+        if out.returncode != 0:
+            return None
+        return int(out.stdout.strip().splitlines()[0].strip())
+    except Exception:
+        return None
 
 # Lua chon engine (ten hien thi).
 #  - OmniVoice VN (WSL): tieng Viet, nhanh ~2.6x.
@@ -346,6 +365,9 @@ class App:
         self.stop_event = threading.Event()
         self.pause_event = threading.Event()
         self.pause_event.set()               # set => chay, clear => tam dung
+        self.cool_event = threading.Event()  # set => chay, clear => dang lam mat GPU
+        self.cool_event.set()
+        self.cool_thread = None
         self.runner_thread = None
         self.running = False
 
@@ -416,6 +438,30 @@ class App:
         ttk.Checkbutton(cv, text="Resume (bo qua dong da tao)",
                         variable=self.var_resume).grid(row=3, column=0, columnspan=2,
                                                         sticky="w", padx=6, pady=(0, 8))
+
+        # ----- Giam nhiet GPU (nghi lam mat dinh ky + auto-pause theo nhiet) -----
+        self.var_cool = tk.BooleanVar(value=False)
+        self.var_cool_run = tk.IntVar(value=120)    # chay bao nhieu giay
+        self.var_cool_rest = tk.IntVar(value=30)    # roi nghi bao nhieu giay
+        self.var_cool_thi = tk.IntVar(value=82)     # tam dung khi nhiet >= (C)
+        self.var_cool_tlo = tk.IntVar(value=68)     # chay lai khi nhiet <= (C)
+        gc = ttk.LabelFrame(self.root, text="Giam nhiet GPU")
+        gc.pack(fill="x", padx=8, pady=4)
+        ttk.Checkbutton(gc, text="Bat giam nhiet",
+                        variable=self.var_cool).pack(side="left", padx=6, pady=6)
+        ttk.Label(gc, text="Chay").pack(side="left")
+        ttk.Spinbox(gc, from_=10, to=3600, increment=10, width=5,
+                    textvariable=self.var_cool_run).pack(side="left", padx=2)
+        ttk.Label(gc, text="giay  ->  nghi").pack(side="left")
+        ttk.Spinbox(gc, from_=5, to=1800, increment=5, width=5,
+                    textvariable=self.var_cool_rest).pack(side="left", padx=2)
+        ttk.Label(gc, text="giay     |     tam dung khi >=").pack(side="left")
+        ttk.Spinbox(gc, from_=50, to=95, increment=1, width=4,
+                    textvariable=self.var_cool_thi).pack(side="left", padx=2)
+        ttk.Label(gc, text="C, chay lai khi <=").pack(side="left")
+        ttk.Spinbox(gc, from_=40, to=90, increment=1, width=4,
+                    textvariable=self.var_cool_tlo).pack(side="left", padx=2)
+        ttk.Label(gc, text="C").pack(side="left")
 
         # ----- Batch Job Options -----
         bj = ttk.LabelFrame(self.root, text="Batch Job Options")
@@ -779,11 +825,62 @@ class App:
     def _begin_run(self):
         self.stop_event.clear()
         self.pause_event.set()
+        self.cool_event.set()
         self.done_count = 0
         self.start_time = time.time()
         self._set_running_ui(True)
         self._tick_elapsed()
+        self.cool_thread = threading.Thread(target=self._cooling_loop, daemon=True)
+        self.cool_thread.start()
         self.runner_thread.start()
+
+    def _cooling_loop(self):
+        """Dieu khien cool_event de giam nhiet GPU. cool_event SET = cho chay,
+        CLEAR = dang lam mat (cac luong cho truoc khi sinh file ke tiep).
+
+        - Auto-pause theo nhiet: nhiet >= nguong cao -> nghi toi khi <= nguong thap.
+        - Nghi dinh ky: chay 'run' giay roi nghi 'rest' giay, lap lai.
+        Viec lam mat chi xay ra GIUA cac file (khong cat ngang 1 file dang sinh)."""
+        def _run_sec():
+            return max(10, int(self.var_cool_run.get()))
+        run_until = time.time() + _run_sec()
+        while self.running and not self.stop_event.is_set():
+            if not self.var_cool.get():
+                self.cool_event.set()
+                run_until = time.time() + _run_sec()
+                time.sleep(2)
+                continue
+            temp = gpu_temp()
+            thi = int(self.var_cool_thi.get())
+            tlo = int(self.var_cool_tlo.get())
+            # 1) Qua nong -> nghi toi khi nguoi
+            if temp is not None and temp >= thi:
+                self.cool_event.clear()
+                self.log(f"== Lam mat GPU: {temp}C >= {thi}C, tam dung ==")
+                while self.running and not self.stop_event.is_set():
+                    t = gpu_temp()
+                    if t is None or t <= tlo:
+                        self.log(f"== GPU {t if t is not None else '?'}C, chay tiep ==")
+                        break
+                    time.sleep(3)
+                self.cool_event.set()
+                run_until = time.time() + _run_sec()
+                continue
+            # 2) Nghi dinh ky theo thoi gian
+            if time.time() >= run_until:
+                rest = max(5, int(self.var_cool_rest.get()))
+                self.cool_event.clear()
+                tnow = gpu_temp()
+                self.log(f"== Lam mat GPU dinh ky: nghi {rest}s"
+                         f"{f' (dang {tnow}C)' if tnow is not None else ''} ==")
+                end = time.time() + rest
+                while self.running and not self.stop_event.is_set() and time.time() < end:
+                    time.sleep(1)
+                self.cool_event.set()
+                run_until = time.time() + _run_sec()
+                continue
+            time.sleep(2)
+        self.cool_event.set()   # ket thuc -> tra ve trang thai chay
 
     def _tick_elapsed(self):
         if self.running:
@@ -807,6 +904,7 @@ class App:
             return
         self.stop_event.set()
         self.pause_event.set()
+        self.cool_event.set()
         self.log("== Stop: dang dung lai... ==")
 
     def _run_files(self, files):
@@ -888,6 +986,7 @@ class App:
                 self.refresh_status()
                 return
             self.pause_event.wait()
+            self.cool_event.wait()          # giam nhiet GPU: cho neu dang lam mat
             if self.stop_event.is_set():
                 self.set_row(row["iid"], status="Stopped")
                 return
@@ -925,6 +1024,7 @@ class App:
         try:
             self.stop_event.set()
             self.pause_event.set()
+            self.cool_event.set()
         except Exception:
             pass
         # tat server (neu do GUI khoi dong) de giai phong VRAM
