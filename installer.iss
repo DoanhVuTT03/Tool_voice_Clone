@@ -3,7 +3,7 @@
 ; Cai vao thu muc nguoi dung (khong can quyen admin); deps tai khi chay lan dau.
 
 #define AppName "Tool Voice Clone (Doanhbadboiz)"
-#define AppVer "1.3.4"
+#define AppVer "1.3.5"
 #define AppPub "Doanhbadboiz - Vu Duc Doanh"
 
 [Setup]

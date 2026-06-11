@@ -30,8 +30,10 @@ exit /b 1
 
 :checkdistro
 REM --- WSL co bat, NHUNG phai co IT NHAT 1 ban Linux (distro) chay duoc ---
-REM     'wsl --status' van bao OK ke ca khi CHUA co distro nao -> phai check rieng.
-wsl.exe -l -q >nul 2>nul
+REM     LUU Y: 'wsl --status' va ca 'wsl -l -q' co the bao OK / exit 0 ke ca khi
+REM     CHUA co distro nao (khac nhau theo phien ban WSL). Chac chan nhat la
+REM     CHAY THU 1 lenh trong WSL: chua co distro -> wsl tra ve loi (errorlevel<>0).
+wsl.exe -u root -- true >nul 2>nul
 if errorlevel 1 goto :nodistro
 goto :haswsl
 
