@@ -60,6 +60,32 @@ class WslServer:
             cmd += ["-d", self.distro]
         return cmd + ["-u", "root", "--"]
 
+    def has_distro(self):
+        """True neu WSL co IT NHAT 1 ban Linux chay duoc.
+
+        'wsl --status' van OK ke ca khi CHUA cai distro nao -> phai check rieng,
+        neu khong server se 'thoat som' va GUI cu doi cai dat lap di lap lai.
+        Output cua 'wsl -l -q' la UTF-16 -> giai ma roi loc dong rong.
+        """
+        try:
+            out = subprocess.run(
+                ["wsl.exe", "-l", "-q"],
+                capture_output=True, timeout=15,
+                creationflags=CREATE_NO_WINDOW)
+        except Exception:
+            return False
+        if out.returncode != 0:
+            return False
+        try:
+            text = out.stdout.decode("utf-16-le", "ignore")
+        except Exception:
+            text = out.stdout.decode("utf-8", "ignore")
+        names = [ln.strip().strip("\x00") for ln in text.splitlines()]
+        names = [n for n in names if n]
+        if self.distro:
+            return any(n.lower() == self.distro.lower() for n in names)
+        return len(names) > 0
+
     def _kill_any(self):
         """Tat BAT KY server omni_server.py nao trong WSL (de doi model / giai phong VRAM)."""
         try:
@@ -71,6 +97,10 @@ class WslServer:
 
     # ---- khoi dong server ----
     def start(self, stop_check=None, wait_sec=900):
+        if not self.has_distro():
+            self.log("[LOI] WSL da bat nhung CHUA co ban Linux (Ubuntu) nao.")
+            self.log("    -> Chay cai_dat_wsl.bat de cai Ubuntu, roi mo lai tool.")
+            return False
         h = self.health()
         if h and h.get("ready"):
             # da chay - kiem tra DUNG model can khong (VRAM chi du 1 model)

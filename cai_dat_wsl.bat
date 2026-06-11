@@ -9,7 +9,7 @@ echo.
 
 REM --- Kiem tra WSL co san khong (dung goto, KHONG dung khoi ngoac) ---
 wsl.exe --status >nul 2>nul
-if not errorlevel 1 goto :haswsl
+if not errorlevel 1 goto :checkdistro
 
 echo May CHUA co WSL. Dang thu CAI TU DONG.
 echo.
@@ -28,13 +28,40 @@ echo.
 pause
 exit /b 1
 
+:checkdistro
+REM --- WSL co bat, NHUNG phai co IT NHAT 1 ban Linux (distro) chay duoc ---
+REM     'wsl --status' van bao OK ke ca khi CHUA co distro nao -> phai check rieng.
+wsl.exe -l -q >nul 2>nul
+if errorlevel 1 goto :nodistro
+goto :haswsl
+
+:nodistro
+echo May da bat WSL nhung CHUA co ban Linux nao - dang cai Ubuntu.
+echo.
+echo === QUAN TRONG ===
+echo   - Cua so cai Ubuntu se hien ra, doi tai xong.
+echo   - Khi duoc hoi, hay TAO username va password cho Ubuntu roi nho lai.
+echo   - Cai xong, chay LAI file nay de tiep tuc cai OmniVoice.
+echo.
+pause
+wsl.exe --install -d Ubuntu
+echo.
+echo Neu bao loi quyen, mo PowerShell Admin va go:  wsl --install -d Ubuntu
+echo Sau khi tao xong user Ubuntu, CHAY LAI file nay.
+echo.
+pause
+exit /b 1
+
 :haswsl
 echo WSL OK. Dang cai moi truong OmniVoice trong WSL quyen root...
 echo Tai PyTorch + OmniVoice + TAI SAN MODEL trong WSL - co the vai GB, chi 1 lan.
 echo.
+set "WSLSH="
 for /f "delims=" %%i in ('wsl.exe wslpath "%~dp0wsl\omni_bootstrap.sh"') do set "WSLSH=%%i"
+if not defined WSLSH goto :failwsl
 wsl.exe -u root -- bash "%WSLSH%"
 if errorlevel 1 goto :failwsl
+if not "%errorlevel%"=="0" goto :failwsl
 
 echo.
 echo === XONG! Engine WSL san sang. Mo app va chon engine OmniVoice WSL. ===
