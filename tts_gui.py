@@ -492,16 +492,20 @@ class App:
 
         # ----- table -----
         cols = ("id", "output", "timing", "content", "voice", "status")
-        self.tree = ttk.Treeview(self.root, columns=cols, show="headings", height=16)
+        tbl = ttk.Frame(self.root)
+        tbl.pack(side="top", fill="both", expand=True, padx=8, pady=4)
+        self.tree = ttk.Treeview(tbl, columns=cols, show="headings", height=16)
         headers = {"id": ("Id", 40), "output": ("Output", 90), "timing": ("Timing", 150),
                    "content": ("Content", 520), "voice": ("Voice #", 70), "status": ("Status", 180)}
         for c in cols:
             t, w = headers[c]
             self.tree.heading(c, text=t)
             self.tree.column(c, width=w, anchor="w")
-        vsb = ttk.Scrollbar(self.root, orient="vertical", command=self.tree.yview)
+        # Thanh cuon doc ben phai (keo chuot len/xuong nhanh)
+        vsb = ttk.Scrollbar(tbl, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscrollcommand=vsb.set)
-        self.tree.pack(side="top", fill="both", expand=True, padx=8, pady=4)
+        vsb.pack(side="right", fill="y")
+        self.tree.pack(side="left", fill="both", expand=True)
 
         # ----- log -----
         self.txt_log = tk.Text(self.root, height=6, wrap="word")
