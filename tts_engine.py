@@ -12,9 +12,26 @@ nhieu luong (So luong AI) van an toan, chung se xep hang lan luot tren GPU.
 """
 from __future__ import annotations
 
+import io
 import os
+import sys
 import threading
 import numpy as np
+
+# Sua loi 'charmap' codec khi nap model: thu vien (omnivoice/hf/tqdm) in ky tu
+# Unicode ra stdout/stderr ma tren Windows mac dinh la cp1252 -> ep UTF-8.
+for _nm in ("stdout", "stderr"):
+    _st = getattr(sys, _nm, None)
+    try:
+        if _st is None:
+            setattr(sys, _nm, open(os.devnull, "w", encoding="utf-8"))
+        else:
+            _st.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        try:
+            setattr(sys, _nm, io.TextIOWrapper(_st.buffer, encoding="utf-8", errors="replace"))
+        except Exception:
+            pass
 
 # Tai model nhanh + on dinh hon qua hf_transfer (neu da cai)
 os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
