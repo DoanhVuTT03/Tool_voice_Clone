@@ -38,7 +38,9 @@ if errorlevel 1 goto :nodistro
 goto :haswsl
 
 :nodistro
-echo May da bat WSL nhung CHUA co ban Linux nao - dang cai Ubuntu.
+echo May da bat WSL nhung CHUA co ban Linux nao - dang cai Ubuntu 24.04 LTS.
+echo   (Dung ban LTS de khop PyTorch/OmniVoice - ban 'Ubuntu' moi nhat dung
+echo    Python qua moi se LOI khi cai PyTorch.)
 echo.
 echo === QUAN TRONG ===
 echo   - Cua so cai Ubuntu se hien ra, doi tai xong.
@@ -46,9 +48,9 @@ echo   - Khi duoc hoi, hay TAO username va password cho Ubuntu roi nho lai.
 echo   - Cai xong, chay LAI file nay de tiep tuc cai OmniVoice.
 echo.
 pause
-wsl.exe --install -d Ubuntu
+wsl.exe --install -d Ubuntu-24.04
 echo.
-echo Neu bao loi quyen, mo PowerShell Admin va go:  wsl --install -d Ubuntu
+echo Neu bao loi quyen, mo PowerShell Admin va go:  wsl --install -d Ubuntu-24.04
 echo Sau khi tao xong user Ubuntu, CHAY LAI file nay.
 echo.
 pause

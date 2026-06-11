@@ -20,7 +20,24 @@ echo "[1/4] Cai goi he thong (python venv, ffmpeg, libsndfile)..."
 $SUDO apt-get update -y
 $SUDO apt-get install -y python3 python3-venv python3-pip ffmpeg libsndfile1
 
-echo "[2/4] Tao moi truong ao: $VENV"
+# --- Kiem tra Python tuong thich: torch 2.8 + librosa/numba can Python 3.10-3.13.
+#     Ban 'Ubuntu' moi nhat dung Python 3.14 -> KHONG co banh xe torch/numba -> loi.
+PYVER="$(python3 -c 'import sys;print("%d.%d"%sys.version_info[:2])')"
+PYMAJ="${PYVER%%.*}"
+PYMIN="${PYVER#*.}"
+if [ "$PYMAJ" != "3" ] || [ "$PYMIN" -lt 10 ] || [ "$PYMIN" -gt 13 ]; then
+  echo ""
+  echo "[LOI] Distro nay dung Python $PYVER - khong tuong thich PyTorch 2.8/OmniVoice."
+  echo "      Can Python 3.10 - 3.12. Hay dung Ubuntu 24.04 LTS:"
+  echo "        1) Mo PowerShell, go:  wsl --unregister Ubuntu"
+  echo "             (thay 'Ubuntu' bang ten distro hien tai neu khac - xem 'wsl -l -v')"
+  echo "        2) Go tiep:            wsl --install -d Ubuntu-24.04"
+  echo "        3) Tao username/password Ubuntu, roi chay lai cai_dat_wsl.bat"
+  echo ""
+  exit 1
+fi
+
+echo "[2/4] Tao moi truong ao: $VENV (Python $PYVER)"
 python3 -m venv "$VENV"
 # shellcheck disable=SC1091
 source "$VENV/bin/activate"
