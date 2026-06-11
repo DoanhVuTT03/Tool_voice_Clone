@@ -592,6 +592,20 @@ class App:
         note = f"  (transcript: {len(self.ref_text)} ky tu)" if self.ref_text else "  (khong co transcript)"
         self.lbl_ref.config(text=p.name + note, foreground="#070")
         self.log(f"Da chon giong mau: {p.name}{note}")
+        # Canh bao neu giong mau QUA DAI (OmniVoice clone chi an 3-25s)
+        try:
+            import soundfile as sf
+            info = sf.info(str(p))
+            dur = info.frames / float(info.samplerate)
+            if dur > 25:
+                self.log(f"[CANH BAO] Giong mau dai {dur:.0f}s - QUA DAI! Nen dung 5-15s.")
+                messagebox.showwarning("Giong mau qua dai",
+                    f"Giong mau '{p.name}' dai ~{dur:.0f} giay.\n\n"
+                    f"OmniVoice clone TOT NHAT voi giong mau 3-25 giay.\n"
+                    f"Mau qua dai se lam giong ra 'a u' / gan im lang.\n\n"
+                    f"=> Hay chon file giong mau NGAN 5-15 giay (dinh dang WAV).")
+        except Exception:
+            pass
 
     def clear_reference(self):
         self.ref_audio_path = None
